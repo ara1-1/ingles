@@ -3,107 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESL Dictation Pro - Descarga de Audio</title>
+    <title>ESL Dictation Pro 🎧</title>
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
-        .control-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
-        select, input[type="range"], button { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; font-size: 1rem; cursor: pointer; }
-        .btn-play { background-color: #27ae60; color: white; border: none; font-weight: bold; margin-bottom: 10px; }
-        .btn-download { background-color: #3498db; color: white; border: none; font-weight: bold; }
-        .btn-play:hover { background-color: #219150; }
-        .btn-download:hover { background-color: #2980b9; }
-        .translation-box { margin-top: 20px; padding: 15px; background: #e8f4fd; border-left: 5px solid #3498db; display: none; line-height: 1.6; }
-        .lang-label { font-weight: bold; color: #2980b9; text-transform: uppercase; font-size: 0.8em; }
-        hr { border: 0; border-top: 1px solid #bdc3c7; margin: 10px 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #eef2f3;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        label {
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input[type="range"], button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-top: 6px;
+            font-size: 1rem;
+        }
+        .btn {
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-play { background: #27ae60; }
+        .btn-play:hover { background: #1f8a4d; }
+
+        .btn-part { background: #8e44ad; margin-top: 10px; }
+        .btn-part:hover { background: #732d91; }
+
+        .btn-download { background: #3498db; margin-top: 10px; }
+        .btn-download:hover { background: #217dbb; }
+
+        .translation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-left: 5px solid #3498db;
+            display: none;
+        }
+        .lang-label {
+            font-weight: bold;
+            color: #2980b9;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
     </style>
 </head>
-<body>
 
+<body>
 <div class="container">
+
     <h1>ESL Dictation Pro 🎧</h1>
 
-    <div class="control-group">
-        <label>Selecciona un Tema:</label>
-        <select id="topicSelector" onchange="resetView()"></select>
-    </div>
+    <!-- Selector de temas -->
+    <label>Selecciona un Tema:</label>
+    <select id="topicSelector" onchange="resetView()"></select>
 
-    <div class="control-group">
-        <label>Velocidad: <span id="speedVal">1.0x</span></label>
-        <input type="range" id="speedRange" min="0.5" max="1.2" step="0.1" value="1" oninput="document.getElementById('speedVal').innerText=this.value+'x'">
-    </div>
+    <!-- Control de velocidad -->
+    <label style="margin-top: 15px;">Velocidad del audio: <span id="speedVal">1.0x</span></label>
+    <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1"
+           oninput="updateSpeed()">
 
-    <button class="btn-play" onclick="playDictation()">▶ Escuchar Dictado</button>
-    
-    <!-- NUEVO BOTÓN PARA DESCARGAR LA VOZ DEL SISTEMA -->
-    <button class="btn-download" onclick="downloadDictationAudio()">📥 Descargar audio (MP3/WebM)</button>
+    <!-- Reproductor de audio real -->
+    <audio id="audioPlayer" controls style="width: 100%; margin-top: 20px;">
+        <source src="gig economy.mp3" type="audio/mpeg">
+    </audio>
 
-    <div class="control-group" style="margin-top: 20px; text-align: center;">
-        <button onclick="toggleTranslation()" style="background: #34495e; color: white;">Mostrar / Ocultar Texto</button>
-    </div>
+    <!-- Botones -->
+    <button class="btn btn-play" onclick="playFull()">▶ Reproducir todo</button>
+
+    <button class="btn btn-part" onclick="playPart(0, 5)">▶ Parte 1 (0–5s)</button>
+    <button class="btn btn-part" onclick="playPart(5, 12)">▶ Parte 2 (5–12s)</button>
+    <button class="btn btn-part" onclick="playPart(12, 20)">▶ Parte 3 (12–20s)</button>
+
+    <button class="btn btn-download" onclick="downloadAudio()">📥 Descargar MP3</button>
+
+    <!-- Texto traducido -->
+    <button class="btn" style="background:#34495e; margin-top:20px;" onclick="toggleTranslation()">
+        Mostrar / Ocultar Texto
+    </button>
 
     <div id="translationText" class="translation-box"></div>
+
 </div>
 
 <script>
     const lessons = [
-        { title: "At the Check-in Counter", english: "Good morning. I would like to check in for my flight to New York. Here is my passport. I have one suitcase to check and a small carry-on bag.", spanish: "Buenos días. Me gustaría facturar para mi vuelo a Nueva York..." },
-        { title: "American Breakfast", english: "In the United States, breakfast is a very important meal. On weekdays, many people just have a bowl of cereal.", spanish: "En los Estados Unidos, el desayuno es una comida muy importante..." }
-        // Puedes seguir pegando aquí los otros temas que ya teníamos
+        {
+            title: "Gig Economy",
+            english: "The gig economy is growing rapidly...",
+            spanish: "La economía de trabajos temporales está creciendo rápidamente..."
+        }
     ];
 
-    const topicSelector = document.getElementById('topicSelector');
-    const speedRange = document.getElementById('speedRange');
-    const translationBox = document.getElementById('translationText');
+    const topicSelector = document.getElementById("topicSelector");
+    const audio = document.getElementById("audioPlayer");
 
-    lessons.forEach((lesson, index) => {
-        let opt = document.createElement('option');
-        opt.value = index;
+    lessons.forEach((lesson, i) => {
+        let opt = document.createElement("option");
+        opt.value = i;
         opt.textContent = lesson.title;
         topicSelector.appendChild(opt);
     });
 
-    function playDictation() {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(lessons[topicSelector.value].english);
-        utterance.lang = 'en-US';
-        utterance.rate = speedRange.value;
-        window.speechSynthesis.speak(utterance);
+    function updateSpeed() {
+        const speed = document.getElementById("speedRange").value;
+        document.getElementById("speedVal").innerText = speed + "x";
+        audio.playbackRate = speed;
     }
 
-    // FUNCION PARA DESCARGAR LA VOZ DEL NAVEGADOR
-    async function downloadDictationAudio() {
-        const text = lessons[topicSelector.value].english;
-        const rate = speedRange.value;
-        
-        // Usamos una API externa gratuita para generar el archivo descargable
-        // ya que la voz interna del navegador (SpeechSynthesis) no permite exportar a archivo directamente por seguridad.
-        const voiceUrl = `https://translate.google.com{encodeURIComponent(text)}&tl=en&total=1&idx=0&textlen=${text.length}&client=tw-ob&ttsspeed=${rate}`;
-        
-        const link = document.createElement('a');
-        link.href = voiceUrl;
-        link.target = "_blank";
-        link.download = `dictado_${lessons[topicSelector.value].title}.mp3`;
-        document.body.appendChild(link);
+    function playFull() {
+        audio.currentTime = 0;
+        audio.play();
+    }
+
+    function playPart(start, end) {
+        audio.currentTime = start;
+        audio.play();
+
+        const interval = setInterval(() => {
+            if (audio.currentTime >= end) {
+                audio.pause();
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+
+    function downloadAudio() {
+        const link = document.createElement("a");
+        link.href = "gig economy.mp3";
+        link.download = "gig_economy.mp3";
         link.click();
-        document.body.removeChild(link);
     }
 
     function toggleTranslation() {
-        if (translationBox.style.display === "block") {
-            translationBox.style.display = "none";
+        const box = document.getElementById("translationText");
+        if (box.style.display === "block") {
+            box.style.display = "none";
         } else {
-            const selected = lessons[topicSelector.value];
-            translationBox.innerHTML = `<span class="lang-label">Inglés:</span><p>${selected.english}</p><hr><span class="lang-label">Español:</span><p>${selected.spanish}</p>`;
-            translationBox.style.display = "block";
+            const lesson = lessons[topicSelector.value];
+            box.innerHTML = `
+                <span class="lang-label">Inglés:</span><p>${lesson.english}</p>
+                <hr>
+                <span class="lang-label">Español:</span><p>${lesson.spanish}</p>
+            `;
+            box.style.display = "block";
         }
     }
 
-    function resetView() { translationBox.style.display = "none"; }
+    function resetView() {
+        document.getElementById("translationText").style.display = "none";
+    }
 </script>
 
 </body>
 </html>
-
