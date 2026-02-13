@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESL Dictation Pro - Descarga de Audio</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+        select, input[type="range"], button { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; font-size: 1rem; cursor: pointer; }
+        .btn-play { background-color: #27ae60; color: white; border: none; font-weight: bold; margin-bottom: 10px; }
+        .btn-download { background-color: #3498db; color: white; border: none; font-weight: bold; }
+        .btn-play:hover { background-color: #219150; }
+        .btn-download:hover { background-color: #2980b9; }
+        .translation-box { margin-top: 20px; padding: 15px; background: #e8f4fd; border-left: 5px solid #3498db; display: none; line-height: 1.6; }
+        .lang-label { font-weight: bold; color: #2980b9; text-transform: uppercase; font-size: 0.8em; }
+        hr { border: 0; border-top: 1px solid #bdc3c7; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ESL Dictation Pro 🎧</h1>
+
+    <div class="control-group">
+        <label>Selecciona un Tema:</label>
+        <select id="topicSelector" onchange="resetView()"></select>
+    </div>
+
+    <div class="control-group">
+        <label>Velocidad: <span id="speedVal">1.0x</span></label>
+        <input type="range" id="speedRange" min="0.5" max="1.2" step="0.1" value="1" oninput="document.getElementById('speedVal').innerText=this.value+'x'">
+    </div>
+
+    <button class="btn-play" onclick="playDictation()">▶ Escuchar Dictado</button>
+    
+    <!-- NUEVO BOTÓN PARA DESCARGAR LA VOZ DEL SISTEMA -->
+    <button class="btn-download" onclick="downloadDictationAudio()">📥 Descargar audio (MP3/WebM)</button>
+
+    <div class="control-group" style="margin-top: 20px; text-align: center;">
+        <button onclick="toggleTranslation()" style="background: #34495e; color: white;">Mostrar / Ocultar Texto</button>
+    </div>
+
+    <div id="translationText" class="translation-box"></div>
+</div>
+
+<script>
+    const lessons = [
+        { title: "At the Check-in Counter", english: "Good morning. I would like to check in for my flight to New York. Here is my passport. I have one suitcase to check and a small carry-on bag.", spanish: "Buenos días. Me gustaría facturar para mi vuelo a Nueva York..." },
+        { title: "American Breakfast", english: "In the United States, breakfast is a very important meal. On weekdays, many people just have a bowl of cereal.", spanish: "En los Estados Unidos, el desayuno es una comida muy importante..." }
+        // Puedes seguir pegando aquí los otros temas que ya teníamos
+    ];
+
+    const topicSelector = document.getElementById('topicSelector');
+    const speedRange = document.getElementById('speedRange');
+    const translationBox = document.getElementById('translationText');
+
+    lessons.forEach((lesson, index) => {
+        let opt = document.createElement('option');
+        opt.value = index;
+        opt.textContent = lesson.title;
+        topicSelector.appendChild(opt);
+    });
+
+    function playDictation() {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(lessons[topicSelector.value].english);
+        utterance.lang = 'en-US';
+        utterance.rate = speedRange.value;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // FUNCION PARA DESCARGAR LA VOZ DEL NAVEGADOR
+    async function downloadDictationAudio() {
+        const text = lessons[topicSelector.value].english;
+        const rate = speedRange.value;
+        
+        // Usamos una API externa gratuita para generar el archivo descargable
+        // ya que la voz interna del navegador (SpeechSynthesis) no permite exportar a archivo directamente por seguridad.
+        const voiceUrl = `https://translate.google.com{encodeURIComponent(text)}&tl=en&total=1&idx=0&textlen=${text.length}&client=tw-ob&ttsspeed=${rate}`;
+        
+        const link = document.createElement('a');
+        link.href = voiceUrl;
+        link.target = "_blank";
+        link.download = `dictado_${lessons[topicSelector.value].title}.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function toggleTranslation() {
+        if (translationBox.style.display === "block") {
+            translationBox.style.display = "none";
+        } else {
+            const selected = lessons[topicSelector.value];
+            translationBox.innerHTML = `<span class="lang-label">Inglés:</span><p>${selected.english}</p><hr><span class="lang-label">Español:</span><p>${selected.spanish}</p>`;
+            translationBox.style.display = "block";
+        }
+    }
+
+    function resetView() { translationBox.style.display = "none"; }
+</script>
+
+</body>
+</html>
